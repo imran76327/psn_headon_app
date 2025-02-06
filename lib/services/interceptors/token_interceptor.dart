@@ -42,59 +42,55 @@ class TokenInterceptor extends QueuedInterceptorsWrapper {
       return handler.next(options);
     }
 
-    String? accessToken =
-        await storage.read(key: StringConstants.ACCESS_TOKEN_KEY);
+    String accessToken =
+        await storage.read(key: StringConstants.ACCESS_TOKEN_KEY)?? '';
 
-    if (accessToken != null) {
-      bool isAccessTokenExpired = isTokenExpired(accessToken);
+    bool isAccessTokenExpired = isTokenExpired(accessToken);
 
-      //check if token in storage is expired
-      if (!isAccessTokenExpired) {
-        options.headers[StringConstants.AUTH_HEADER] = "Bearer $accessToken";
-      } else {
-        try {
-          String? refreshToken =
-              await storage.read(key: StringConstants.REFRESH_TOKEN_KEY);
-          if (refreshToken != null) {
-            // bool isRefresgTokenExpired = isTokenExpired(refreshToken);
-            // if (isRefresgTokenExpired) {
-            // } else {
-            var response = await dio.get("/refresh-token",
-                queryParameters: {"refresh": refreshToken});
+    //check if token in storage is expired
+    if (!isAccessTokenExpired) {
+      options.headers[StringConstants.AUTH_HEADER] = "Bearer $accessToken";
+    } else {
+      try {
+        String? refreshToken =
+            await storage.read(key: StringConstants.REFRESH_TOKEN_KEY);
+        if (refreshToken != null) {
+          // bool isRefresgTokenExpired = isTokenExpired(refreshToken);
+          // if (isRefresgTokenExpired) {
+          // } else {
+          var response = await dio.get("/refresh-token",
+              queryParameters: {"refresh": refreshToken});
 
-            if (response.statusCode == 200) {
-              accessToken = response.data['access-token'];
+          if (response.statusCode == 200) {
+            accessToken = response.data['access-token'];
 
-              await storage.write(
-                  key: StringConstants.ACCESS_TOKEN_KEY, value: accessToken);
-              await storage.write(
-                  key: StringConstants.REFRESH_TOKEN_KEY,
-                  value: response.data['refresh-token']);
+            await storage.write(
+                key: StringConstants.ACCESS_TOKEN_KEY, value: accessToken);
+            await storage.write(
+                key: StringConstants.REFRESH_TOKEN_KEY,
+                value: response.data['refresh-token']);
 
-              options.headers[StringConstants.AUTH_HEADER] = accessToken;
-            } else if (response.statusCode == 403) {
-              handler.reject(UnauthorizedException(options));
-            } else {
-              handler.reject(InternalServerErrorException(options));
-            }
-            // }
-          } else {
-            handler.reject(TokenExpiredException(options));
-          }
-        } on DioException catch (e) {
-          if (e is NoInternetConnectionException) {
-            handler.reject(NoInternetConnectionException(options));
+            options.headers[StringConstants.AUTH_HEADER] = accessToken;
+          } else if (response.statusCode == 403) {
+            handler.reject(UnauthorizedException(options));
           } else {
             handler.reject(InternalServerErrorException(options));
           }
-        } catch (e) {
+          // }
+        } else {
+          handler.reject(TokenExpiredException(options));
+        }
+      } on DioException catch (e) {
+        if (e is NoInternetConnectionException) {
+          handler.reject(NoInternetConnectionException(options));
+        } else {
           handler.reject(InternalServerErrorException(options));
         }
+      } catch (e) {
+        handler.reject(InternalServerErrorException(options));
       }
-    } else {
-      handler.reject(UnauthorizedException(options));
     }
-
+  
     try {
       return handler.next(options);
     } catch (e) {

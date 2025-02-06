@@ -63,7 +63,7 @@ class User extends Equatable {
         await storage.read(key: StringConstants.ACCESS_TOKEN_KEY);
     String? refreshToken =
         await storage.read(key: StringConstants.REFRESH_TOKEN_KEY);
-    if (accessToken == null || refreshToken == null) {
+    if (refreshToken == null) {
       throw Exception('User not found');
     }
     bool isRefreshTokenExpired = isTokenExpired(refreshToken);
@@ -71,14 +71,14 @@ class User extends Equatable {
       throw Exception('User Sessioned Out');
     }
     int? id = int.tryParse(await storage.read(key: 'user_id') ?? '-');
-    String? username = await storage.read(key: 'username');
-    String? name = await storage.read(key: 'name');
+    String username = await storage.read(key: 'username')?? '';
+    String name = await storage.read(key: 'name')?? '';
     int? roleId = int.tryParse(await storage.read(key: 'role_id') ?? '-');
     bool isActive = await storage.read(key: 'is_active') == 'true';
     String employeeId = await storage.read(key: 'employee_id')?? '';
     String? companyId = await storage.read(key: 'company_id')?? '';
 
-    if (id == null || username == null || name == null || roleId == null) {
+    if (id == null || roleId == null) {
       throw Exception('User details not found');
     }
 

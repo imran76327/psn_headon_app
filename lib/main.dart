@@ -103,29 +103,27 @@ Future<void> main() async {
 
 void _handleNotificationTap(RemoteMessage message) async {
   if (message.data.isNotEmpty) {
-    String? shiftDataString = message.data['shift_data'];
-    if (shiftDataString != null) {
-      Map<String, dynamic> shiftData = json.decode(shiftDataString);
-      RosterModel model = RosterModel.fromJson(shiftData);
+    String shiftDataString = message.data['shift_data'];
+    Map<String, dynamic> shiftData = json.decode(shiftDataString);
+    RosterModel model = RosterModel.fromJson(shiftData);
 
-      final int notificationId = int.parse(message.data['notification_log_id']);
-      FlutterSecureStorage storage = const FlutterSecureStorage();
-      await storage.write(
-          key: 'notification_id', value: notificationId.toString());
-      await storage.write(key: 'roster_model', value: json.encode(shiftData));
+    final int notificationId = int.parse(message.data['notification_log_id']);
+    FlutterSecureStorage storage = const FlutterSecureStorage();
+    await storage.write(
+        key: 'notification_id', value: notificationId.toString());
+    await storage.write(key: 'roster_model', value: json.encode(shiftData));
 
-      // navigatorKey.currentState?.pushReplacement(
-      //   MaterialPageRoute(
-      //     builder: (context) => EntryScreen(
-      //       body: RespondSchedule(
-      //         data: model,
-      //         notification_id: notificationId,
-      //       ),
-      //     ),
-      //   ),
-      // );
+    // navigatorKey.currentState?.pushReplacement(
+    //   MaterialPageRoute(
+    //     builder: (context) => EntryScreen(
+    //       body: RespondSchedule(
+    //         data: model,
+    //         notification_id: notificationId,
+    //       ),
+    //     ),
+    //   ),
+    // );
     }
-  }
 }
 
 void _initializeLocalNotifications() {
