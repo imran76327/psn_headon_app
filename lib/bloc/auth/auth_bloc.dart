@@ -15,6 +15,8 @@ import '../../utils/logging/logger.dart';
 part 'auth_event.dart';
 part 'auth_state.dart';
 
+
+
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc() : super(AuthLoading()) {
     on<AuthCheck>(_authCheck);
@@ -46,10 +48,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       // Fetch device token
       print("Firebase Device Token: $token");
 
-      if (token != null) {
-        await AuthService.instance.sendTokenToServer(token);
-      }
-    } catch (e) {
+      await AuthService.instance.sendTokenToServer(token);
+        } catch (e) {
       print("Error fetching device token: $e");
     }
   }
@@ -106,7 +106,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       // Verify the entered OTP
       const storage = FlutterSecureStorage();
       String? storedOtp = await storage.read(key: 'otp');
-      bool isVerified = storedOtp != null && storedOtp == event.enteredOtp;
+      bool isVerified = storedOtp == event.enteredOtp;
       emit(OtpVerifiedState(isVerified: isVerified));
       if (!isVerified) {
         emit(const OtpSentState(otp: "1111"));
